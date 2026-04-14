@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fragments</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="gate-locked">
+
+  <!-- =========================================================
+       COSMIC BACKGROUND
+       Two nebula glow layers + animated star canvas.
+       The canvas is drawn from app.js (section: COSMIC CANVAS).
+       ========================================================= -->
+  <div class="cosmos-bg" aria-hidden="true">
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+    <div class="nebula nebula-3"></div>
+    <div class="aurora"></div>
+    <div class="beams"></div>
+    <div class="mist"></div>
+  </div>
+  <canvas id="cosmos-canvas" aria-hidden="true"></canvas>
+
+  <!-- =========================================================
+       PASSWORD GATE
+       Front-end only. Password defined in app.js → SITE_PASSWORD.
+       On success, a star-shatter dissolve reveals the site.
+       ========================================================= -->
+  <div class="gate" id="gate">
+    <div class="gate-inner">
+      <div class="gate-symbol">✦</div>
+      <p class="gate-kicker">A private place for two</p>
+      <h1 class="gate-title">Whisper the word</h1>
+      <p class="gate-hint">Only one word opens this.</p>
+      <form class="gate-form" id="gate-form" autocomplete="off">
+        <input
+          type="password"
+          id="gate-input"
+          class="gate-input"
+          placeholder="···"
+          aria-label="Password"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="gate-submit">Enter ↓</button>
+      </form>
+      <p class="gate-error" id="gate-error">That's not the word.</p>
+    </div>
+    <div class="gate-shatter" id="gate-shatter" aria-hidden="true"></div>
+  </div>
+
+  <nav class="navbar" id="navbar">
+    <a href="#hero" class="nav-logo">✦</a>
+    <div class="nav-links">
+      <a href="#hero" class="nav-link active" data-section="hero">Home</a>
+      <a href="#book" class="nav-link" data-section="book">Book of Knowledge</a>
+      <a href="#our-story" class="nav-link" data-section="our-story">Our Story</a>
+    </div>
+  </nav>
+
+  <section class="hero" id="hero">
+    <div class="hero-inner">
+      <!-- ============================================
+           HERO TEXT — easy to customize
+           Edit the text inside each tagged element below.
+           ============================================ -->
+
+      <!-- HERO KICKER (small uppercase line above the title) -->
+      <p class="hero-kicker reveal-item" data-delay="0">A private place for two</p>
+
+      <!-- HERO TITLE (main headline) -->
+      <h1 class="hero-title reveal-item" data-delay="150">
+        Every small thing<br />we want to remember.
+      </h1>
+
+      <!-- HERO SUBTITLE (soft paragraph under the title) -->
+      <p class="hero-subtitle reveal-item" data-delay="350">
+        The strange facts, the inside jokes, the quiet moments —<br />
+        collected here so nothing fades.
+      </p>
+
+      <div class="hero-divider reveal-item" data-delay="500"></div>
+
+      <a href="#book" class="hero-cta reveal-item" data-delay="600">Enter the book ↓</a>
+    </div>
+  </section>
+
+  <section id="book" class="reveal-section">
+    <div class="app">
+      <header class="header">
+        <h2>A Book of Knowledge</h2>
+        <div class="divider"></div>
+      </header>
+
+      <button class="add-btn" id="add-btn">
+        <span class="icon">+</span>
+        <span>New fragment</span>
+      </button>
+
+      <div id="cards-container" class="cards">
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="our-story" class="reveal-section">
+    <div class="app">
+      <header class="header">
+        <h2>Our Story</h2>
+        <div class="divider"></div>
+      </header>
+
+      <button class="add-btn" id="add-memory-btn">
+        <span class="icon">+</span>
+        <span>Add memory</span>
+      </button>
+
+      <div id="timeline" class="timeline"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <span class="footer-symbol">✦</span>
+  </footer>
+
+  <!-- Fragment modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">New fragment</h2>
+      <div class="form-group">
+        <label for="input-title">Title</label>
+        <input type="text" id="input-title" placeholder="A short name for this fragment…" />
+      </div>
+      <div class="form-group">
+        <label for="input-content">Content</label>
+        <textarea id="input-content" placeholder="Write the anecdote, idea, or thought…"></textarea>
+      </div>
+      <div class="form-buttons">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="modal-submit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Story add modal -->
+  <div class="modal-overlay" id="story-modal-overlay">
+    <div class="modal">
+      <h2 id="story-modal-title">New memory</h2>
+
+      <div class="form-row">
+        <div class="form-group form-group-half">
+          <label for="story-input-year">Year</label>
+          <select id="story-input-year">
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="2029">2029</option>
+          </select>
+        </div>
+
+        <div class="form-group form-group-half">
+          <label for="story-input-month">Month</label>
+          <select id="story-input-month">
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="story-input-title">Title</label>
+        <input type="text" id="story-input-title" placeholder="A short name for this memory…" />
+      </div>
+
+      <div class="form-group">
+        <label for="story-input-desc">Description (optional)</label>
+        <textarea id="story-input-desc" placeholder="Write the full memory here..."></textarea>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn btn-ghost" id="story-modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="story-modal-submit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Story detail modal — "preserved fragment" feel -->
+  <div class="modal-overlay" id="story-detail-overlay">
+    <div class="modal story-detail-modal">
+      <div class="story-detail-glow" aria-hidden="true"></div>
+      <p class="story-detail-meta" id="story-detail-meta"></p>
+      <h2 id="story-detail-title">Memory</h2>
+      <div class="story-detail-divider"></div>
+      <div class="story-detail-content" id="story-detail-content"></div>
+      <div class="form-buttons">
+        <button class="btn btn-ghost" id="story-detail-close">Close</button>
+        <button class="btn btn-ghost" id="story-detail-edit">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared confirm -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-box">
+      <p id="confirm-text">Delete this? This cannot be undone.</p>
+      <div class="form-buttons">
+        <button class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       EASTER EGG — hidden star message
+       The hidden message text below is a PLACEHOLDER.
+       Edit it freely; the #easter-egg element is the whole modal.
+       ========================================================= -->
+  <div class="easter-overlay" id="easter-egg">
+    <div class="easter-box">
+      <div class="easter-star">✦</div>
+      <!-- HIDDEN MESSAGE -->
+      <p class="easter-kicker">Un murmure parmi les étoiles</p>
+      <p class="easter-text">
+        Tu as trouvé ce que j’avais caché pour toi.<br />
+        Peu importe où tu es… cette étoile veille sur toi,<br />
+        elle t'appartient.
+      </p>
+      <button class="btn btn-ghost" id="easter-close">Close</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
